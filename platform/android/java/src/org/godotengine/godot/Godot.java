@@ -121,6 +121,7 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 	private boolean mStatePaused;
 	private boolean activityResumed;
 	private int mState;
+	private int mDisplayRotation;
 
 	static private Intent mCurrentIntent;
 
@@ -365,6 +366,10 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 		ActivityManager am = (ActivityManager)this.getSystemService(Context.ACTIVITY_SERVICE);
 		ConfigurationInfo deviceInfo = am.getDeviceConfigurationInfo();
 		return deviceInfo.reqGlEsVersion;
+	}
+
+	public int getDisplayRotation() {
+		return mDisplayRotation;
 	}
 
 	private String[] getCommandLine() {
@@ -734,7 +739,7 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		Display display = ((WindowManager)getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
-		int displayRotation = display.getRotation();
+		mDisplayRotation = display.getRotation();
 
 		float[] adjustedValues = new float[3];
 		final int axisSwap[][] = {
@@ -744,7 +749,7 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 			{ 1, 1, 1, 0 }
 		}; // ROTATION_270
 
-		final int[] as = axisSwap[displayRotation];
+		final int[] as = axisSwap[mDisplayRotation];
 		adjustedValues[0] = (float)as[0] * event.values[as[2]];
 		adjustedValues[1] = (float)as[1] * event.values[as[3]];
 		adjustedValues[2] = event.values[2];

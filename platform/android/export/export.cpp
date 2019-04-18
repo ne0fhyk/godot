@@ -665,6 +665,7 @@ class EditorExportPlatformAndroid : public EditorExportPlatform {
 		bool screen_support_large = p_preset->get("screen/support_large");
 		bool screen_support_xlarge = p_preset->get("screen/support_xlarge");
 
+		bool arcore = p_preset->get("graphics/arcore");
 		int xr_mode_index = p_preset->get("graphics/xr_mode");
 
 		Vector<String> perms;
@@ -822,6 +823,14 @@ class EditorExportPlatformAndroid : public EditorExportPlatform {
 						if (tname == "uses-feature" && attrname == "glEsVersion") {
 
 							encode_uint32(min_gles3 ? 0x00030000 : 0x00020000, &p_manifest.write[iofs + 16]);
+						}
+
+						if (tname == "uses-feature" && attrname == "required" && string_table[attr_value] == "require_hardware_camera_arcore") {
+							string_table.write[attr_value] = arcore ? "true" : "false";
+						}
+
+						if (tname == "meta-data" && attrname == "value" && string_table[attr_value] == "arcore_required") {
+							string_table.write[attr_value] = arcore ? "required" : "false";
 						}
 
 						if (tname == "meta-data" && attrname == "name" && string_table[attr_value] == "xr_mode_metadata_name") {
@@ -1155,6 +1164,7 @@ public:
 
 	virtual void get_export_options(List<ExportOption> *r_options) {
 
+		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "graphics/arcore"), false));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "graphics/xr_mode", PROPERTY_HINT_ENUM, "Regular,Oculus Mobile VR"), 0));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "graphics/32_bits_framebuffer"), true));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "one_click_deploy/clear_previous_install"), true));
