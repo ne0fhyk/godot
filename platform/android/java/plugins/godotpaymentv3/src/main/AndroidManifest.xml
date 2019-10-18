@@ -1,0 +1,11 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+        package="org.godotengine.godot.plugin.paymentv3">
+
+    <application>
+
+        <meta-data
+                android:name="org.godotengine.plugin.v2.GodotPaymentV3"
+                android:value="org.godotengine.godot.plugin.paymentv3.GodotPaymentV3" />
+
+    </application>
+</manifest>

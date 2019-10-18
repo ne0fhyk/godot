@@ -659,46 +659,6 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_ondestroy(JNIEnv *env
 	}
 }
 
-static void _initialize_java_modules() {
-
-	if (!ProjectSettings::get_singleton()->has_setting("android/modules")) {
-		return;
-	}
-
-	String modules = ProjectSettings::get_singleton()->get("android/modules");
-	modules = modules.strip_edges();
-	if (modules == String()) {
-		return;
-	}
-	Vector<String> mods = modules.split(",", false);
-
-	if (mods.size()) {
-		jobject cls = godot_java->get_class_loader();
-
-		// TODO create wrapper for class loader
-
-		JNIEnv *env = ThreadAndroid::get_env();
-		jclass classLoader = env->FindClass("java/lang/ClassLoader");
-		jmethodID findClass = env->GetMethodID(classLoader, "loadClass", "(Ljava/lang/String;)Ljava/lang/Class;");
-
-		for (int i = 0; i < mods.size(); i++) {
-
-			String m = mods[i];
-
-			print_line("Loading Android module: " + m);
-			jstring strClassName = env->NewStringUTF(m.utf8().get_data());
-			jclass singletonClass = (jclass)env->CallObjectMethod(cls, findClass, strClassName);
-			ERR_CONTINUE_MSG(!singletonClass, "Couldn't find singleton for class: " + m + ".");
-
-			jmethodID initialize = env->GetStaticMethodID(singletonClass, "initialize", "(Landroid/app/Activity;)Lorg/godotengine/godot/Godot$SingletonBase;");
-			ERR_CONTINUE_MSG(!initialize, "Couldn't find proper initialize function 'public static Godot.SingletonBase Class::initialize(Activity p_activity)' initializer for singleton class: " + m + ".");
-
-			jobject obj = env->CallStaticObjectMethod(singletonClass, initialize, godot_java->get_activity());
-			env->NewGlobalRef(obj);
-		}
-	}
-}
-
 JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_setup(JNIEnv *env, jobject obj, jobjectArray p_cmdline) {
 	ThreadAndroid::setup_thread();
 
@@ -739,7 +699,6 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_setup(JNIEnv *env, jo
 	}
 
 	java_class_wrapper = memnew(JavaClassWrapper(godot_java->get_activity()));
-	_initialize_java_modules();
 }
 
 JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_resize(JNIEnv *env, jobject obj, jint width, jint height) {
@@ -789,6 +748,7 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_step(JNIEnv *env, job
 		}
 
 		os_android->main_loop_begin();
+		godot_java->on_gl_godot_main_loop_started(env);
 		++step;
 	}
 

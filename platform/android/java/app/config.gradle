@@ -20,3 +20,24 @@ ext.getExportPackageName = { ->
 	}
 	return appId
 }
+
+/**
+ * Parse the project properties for the 'custom_template_v2_plugins' property and return
+ * their binaries for inclusion in the build dependencies.
+ *
+ * The listed plugins must have their binaries in the 'libs/plugins' directory.
+ */
+ext.getGodotPluginsBinaries = { ->
+	// Default dependencies
+	String[] binDeps = ["GodotPaymentV3*.aar"]
+
+	// Retrieve the list of enabled v2 plugins.
+	String pluginsList = project.hasProperty("custom_template_v2_plugins") ? project.property("custom_template_v2_plugins") : ""
+	if (pluginsList != null && !pluginsList.trim().isEmpty()) {
+		for (String plugin: pluginsList.split(",")) {
+			binDeps += plugin + "*.aar"
+		}
+	}
+
+	return binDeps
+}
