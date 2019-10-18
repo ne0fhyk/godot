@@ -34,6 +34,7 @@ import android.app.Activity;
 import android.hardware.SensorEvent;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
+import org.godotengine.godot.plugin.GodotPlugin;
 
 /**
  * Wrapper for native library
@@ -176,14 +177,14 @@ public class GodotLib {
 	public static native void audio();
 
 	/**
-	 * Used to setup a {@link org.godotengine.godot.Godot.SingletonBase} instance.
+	 * Used to setup a {@link GodotPlugin} instance.
 	 * @param p_name Name of the instance.
 	 * @param p_object Reference to the singleton instance.
 	 */
 	public static native void singleton(String p_name, Object p_object);
 
 	/**
-	 * Used to complete registration of the {@link org.godotengine.godot.Godot.SingletonBase} instance's methods.
+	 * Used to complete registration of the {@link GodotPlugin} instance's methods.
 	 * @param p_sname Name of the instance
 	 * @param p_name Name of the method to register
 	 * @param p_ret Return type of the registered method

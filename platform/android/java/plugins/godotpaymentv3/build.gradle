@@ -1,0 +1,30 @@
+apply plugin: 'com.android.library'
+
+android {
+	compileSdkVersion versions.compileSdk
+	buildToolsVersion versions.buildTools
+
+    defaultConfig {
+		minSdkVersion versions.minSdk
+		targetSdkVersion versions.targetSdk
+    }
+
+	libraryVariants.all { variant ->
+		variant.outputs.all { output ->
+			output.outputFileName = "GodotPaymentV3.${variant.name}.aar"
+		}
+	}
+
+}
+
+dependencies {
+	implementation "com.android.support:support-core-utils:28.0.0"
+
+	if (rootProject.findProject(":lib")) {
+		compileOnly project(":lib")
+	} else if (rootProject.findProject(":godot:lib")) {
+		compileOnly project(":godot:lib")
+	} else {
+		compileOnly fileTree(dir: 'libs', include: ['godot-lib*.aar'])
+	}
+}
