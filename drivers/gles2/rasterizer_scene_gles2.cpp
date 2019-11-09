@@ -3228,6 +3228,11 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 
 	} else {
 		state.render_no_shadows = false;
+#ifdef ANDROID_ENABLED // NeoSpark314: this is a hack for oculus quest
+		if (storage->frame.current_rt->external.fbo != 0) { 
+			current_fb = storage->frame.current_rt->external.fbo;
+		} else
+#endif
 		if (storage->frame.current_rt->multisample_active) {
 			current_fb = storage->frame.current_rt->multisample_fbo;
 		} else if (storage->frame.current_rt->external.fbo != 0) {
@@ -3235,6 +3240,7 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 		} else {
 			current_fb = storage->frame.current_rt->fbo;
 		}
+
 		env = environment_owner.getornull(p_environment);
 
 		viewport_width = storage->frame.current_rt->width;
@@ -3495,9 +3501,10 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 #elif ANDROID_ENABLED
-
+		if (storage->frame.current_rt->external.fbo == 0) { // NeoSpark314: this is a hack for oculus quest
 			// In GLES2 AndroidBlit is not available, so just copy color texture manually
 			_copy_texture_to_buffer(storage->frame.current_rt->multisample_color, storage->frame.current_rt->fbo);
+		}
 #endif
 		}
 
@@ -3524,7 +3531,9 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 	}
 
 	//post process
-	_post_process(env, p_cam_projection);
+	if (storage->frame.current_rt->external.fbo == 0) { // NeoSpark314: this is a hack for oculus quest
+		_post_process(env, p_cam_projection);
+	}
 
 	//#define GLES2_SHADOW_ATLAS_DEBUG_VIEW
 

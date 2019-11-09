@@ -5156,14 +5156,24 @@ void RasterizerStorageGLES2::render_target_set_external_texture(RID p_render_tar
 
 		// is there a point to setting the internal formats? we don't know them..
 
-		// set our texture as the destination for our framebuffer
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, p_texture_id, 0);
+#ifdef ANDROID_ENABLED // NeoSpark314: this is a hack for oculus quest
+		if (rt->multisample_active) {
+			static const int msaa_value[] = { 0, 2, 4, 8, 16 };
+			int msaa = msaa_value[rt->msaa];
+			glFramebufferTexture2DMultisample(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, p_texture_id, 0, msaa);
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rt->multisample_depth);
+		} else 
+#endif
+		{
+			// set our texture as the destination for our framebuffer
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, p_texture_id, 0);
 
-		// seeing we're rendering into this directly, better also use our depth buffer, just use our existing one :)
-		if (config.support_depth_texture) {
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, rt->depth, 0);
-		} else {
-			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rt->depth);
+			// seeing we're rendering into this directly, better also use our depth buffer, just use our existing one :)
+			if (config.support_depth_texture) {
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, rt->depth, 0);
+			} else {
+				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rt->depth);
+			}
 		}
 
 		// check status and unbind
