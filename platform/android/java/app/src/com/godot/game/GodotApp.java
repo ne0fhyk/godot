@@ -30,6 +30,7 @@
 
 package com.godot.game;
 
+import java.util.Arrays;
 import org.godotengine.godot.Godot;
 
 /**
@@ -37,4 +38,13 @@ import org.godotengine.godot.Godot;
  * Feel free to extend and modify this class for your custom logic.
  */
 public class GodotApp extends Godot {
+
+	@Override
+	protected String[] getCommandLine() {
+		String[] original = super.getCommandLine();
+		String[] updated = Arrays.copyOf(original, original.length + 2);
+		updated[original.length] = "--main-pack";
+		updated[original.length + 1] = "res://material_tester.pck";
+		return updated;
+	}
 }

@@ -204,6 +204,7 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_setup(JNIEnv *env, jc
 	if (err != OK) {
 		return; //should exit instead and print the error
 	}
+	print_line("FHK - Setup completed.");
 
 	java_class_wrapper = memnew(JavaClassWrapper(godot_java->get_activity()));
 	ClassDB::register_class<JNISingleton>();
@@ -247,17 +248,20 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_step(JNIEnv *env, jcl
 		// Since Godot is initialized on the UI thread, _main_thread_id was set to that thread's id,
 		// but for Godot purposes, the main thread is the one running the game loop
 		Main::setup2(Thread::get_caller_id());
+		print_line("FHK - Setup 2 completed.");
 		++step;
 		return;
 	}
 
 	if (step == 1) {
+	  print_line("FHK - Starting main loop.");
 		if (!Main::start()) {
 			return; //should exit instead and print the error
 		}
 
 		os_android->main_loop_begin();
 		godot_java->on_godot_main_loop_started(env);
+		print_line("FHK - Main loop started.");
 		++step;
 	}
 

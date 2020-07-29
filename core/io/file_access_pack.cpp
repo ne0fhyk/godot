@@ -38,6 +38,7 @@ Error PackedData::add_pack(const String &p_path, bool p_replace_files) {
 
 	for (int i = 0; i < sources.size(); i++) {
 
+	  print_line("FHK - Trying opening pack file...");
 		if (sources[i]->try_open_pack(p_path, p_replace_files)) {
 
 			return OK;
@@ -187,6 +188,7 @@ bool PackedSourcePCK::try_open_pack(const String &p_path, bool p_replace_files) 
 	}
 
 	int file_count = f->get_32();
+	print_line("FHK - Starting pack parsing of pack file with " + itos(file_count));
 
 	for (int i = 0; i < file_count; i++) {
 
@@ -203,8 +205,12 @@ bool PackedSourcePCK::try_open_pack(const String &p_path, bool p_replace_files) 
 		uint64_t size = f->get_64();
 		uint8_t md5[16];
 		f->get_buffer(md5, 16);
+
+      print_line("FHK - Adding path " + path + " with size " + itos(size));
 		PackedData::get_singleton()->add_path(p_path, path, ofs, size, md5, this, p_replace_files);
 	};
+
+	print_line("FHK - Completed pack parsing...");
 
 	f->close();
 	memdelete(f);

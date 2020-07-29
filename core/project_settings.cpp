@@ -273,6 +273,7 @@ bool ProjectSettings::_load_resource_pack(const String &p_pack, bool p_replace_f
 	if (PackedData::get_singleton()->is_disabled())
 		return false;
 
+	print_line("FHK - Adding pack...");
 	bool ok = PackedData::get_singleton()->add_pack(p_pack, p_replace_files) == OK;
 
 	if (!ok)
@@ -344,6 +345,7 @@ Error ProjectSettings::_setup(const String &p_path, const String &p_main_pack, b
 	// Attempt with a user-defined main pack first
 
 	if (p_main_pack != "") {
+	  print_line("FHK - Loading main pack...");
 
 		bool ok = _load_resource_pack(p_main_pack);
 		ERR_FAIL_COND_V_MSG(!ok, ERR_CANT_OPEN, "Cannot open resource pack '" + p_main_pack + "'.");
@@ -354,6 +356,7 @@ Error ProjectSettings::_setup(const String &p_path, const String &p_main_pack, b
 			// Optional, we don't mind if it fails
 			_load_settings_text(p_main_pack.get_base_dir().plus_file("override.cfg"));
 		}
+		print_line("FHK - Completed main pack loading...");
 		return err;
 	}
 
@@ -491,6 +494,7 @@ Error ProjectSettings::setup(const String &p_path, const String &p_main_pack, bo
 
 	Compression::gzip_level = GLOBAL_GET("compression/formats/gzip/compression_level");
 
+	print_line("FHK - Completed setup.");
 	return err;
 }
 
