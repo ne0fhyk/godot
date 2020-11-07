@@ -36,6 +36,9 @@
 void ARVRInterfaceGDNative::_bind_methods() {
 	ADD_PROPERTY_DEFAULT("interface_is_initialized", false);
 	ADD_PROPERTY_DEFAULT("ar_is_anchor_detection_enabled", false);
+
+	// purely for GDNative bindings
+	ClassDB::bind_method(D_METHOD("set_interface", "interface"), &ARVRInterfaceGDNative::_set_interface);
 }
 
 ARVRInterfaceGDNative::ARVRInterfaceGDNative() {
@@ -77,6 +80,11 @@ void ARVRInterfaceGDNative::set_interface(const godot_arvr_interface_gdnative *p
 
 	// Now we do our constructing...
 	data = interface->constructor((godot_object *)this);
+}
+
+// Our ClassDB method bindings don't support pointers (yet), so cast it through int
+void ARVRInterfaceGDNative::_set_interface(int64_t p_interface) {
+	set_interface((godot_arvr_interface_gdnative *) p_interface);
 }
 
 StringName ARVRInterfaceGDNative::get_name() const {
