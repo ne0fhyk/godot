@@ -57,6 +57,7 @@ public:
 	~ARVRInterfaceGDNative();
 
 	void set_interface(const godot_arvr_interface_gdnative *p_interface);
+	void _set_interface(int64_t p_interface);
 
 	virtual StringName get_name() const;
 	virtual int get_capabilities() const;
