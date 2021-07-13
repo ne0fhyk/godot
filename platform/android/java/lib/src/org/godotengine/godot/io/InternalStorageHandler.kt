@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  dir_access_jandroid.h                                                */
+/*  InternalStorageHandler.kt                                            */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,75 +28,20 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef DIR_ACCESS_JANDROID_H
-#define DIR_ACCESS_JANDROID_H
+package org.godotengine.godot.io
 
-#include "core/os/dir_access.h"
-#include "java_godot_lib_jni.h"
-#include <stdio.h>
+import android.content.Context
 
-static const String FILESYSTEM_PREFIX = "ANDROID";
+/**
+ * Handles files and directories access and manipulation within the internal filesystem.
+ */
+internal class InternalStorageHandler(private val context: Context): FileSystemStorageProvider(context) {
 
-class DirAccessJAndroid : public DirAccess {
+	companion object {
+		private val TAG = InternalStorageHandler::class.java.simpleName
+	}
 
-	static jobject storage_handler;
-	static jclass cls;
+	override fun getBaseDir() = context.filesDir
 
-	static jmethodID _dir_open;
-	static jmethodID _dir_next;
-	static jmethodID _dir_close;
-	static jmethodID _dir_is_dir;
-	static jmethodID _get_drive_count;
-	static jmethodID _get_drive;
-	static jmethodID _make_dir;
-	static jmethodID _get_space_left;
-	static jmethodID _get_filesystem_type;
-	static jmethodID _rename;
-	static jmethodID _remove;
 
-	static DirAccess *create_fs();
-
-public:
-	virtual Error list_dir_begin(); ///< This starts dir listing
-	virtual String get_next();
-	virtual bool current_is_dir() const;
-	virtual bool current_is_hidden() const;
-	virtual void list_dir_end(); ///<
-
-	virtual int get_drive_count();
-	virtual String get_drive(int p_drive);
-
-	virtual Error change_dir(String p_dir) = 0; ///< can be relative or absolute, return false on success
-	virtual String get_current_dir() = 0; ///< return current dir location
-
-	virtual bool file_exists(String p_file);
-	virtual bool dir_exists(String p_dir) = 0;
-
-	virtual Error make_dir(String p_dir);
-
-	virtual Error rename(String p_from, String p_to);
-	virtual Error remove(String p_name);
-
-	virtual bool is_link(String p_file) { return false; }
-	virtual String read_link(String p_file) { return p_file; }
-	virtual Error create_link(String p_source, String p_target) { return FAILED; }
-
-	virtual String get_filesystem_type() const;
-
-	virtual uint64_t get_space_left();
-
-	static void setup(jobject p_storage_handler);
-
-	DirAccessJAndroid();
-	~DirAccessJAndroid();
-
-protected:
-	int id;
-
-	String current_dir;
-
-	int dir_open(String p_path);
-	void dir_close(int p_id);
-};
-
-#endif // DIR_ACCESS_JANDROID_H
+}

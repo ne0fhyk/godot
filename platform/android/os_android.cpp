@@ -40,6 +40,7 @@
 #include "servers/visual/visual_server_wrap_mt.h"
 
 #include "dir_access_jandroid.h"
+#include "dir_access_resources_jandroid.h"
 #include "file_access_android.h"
 #include "net_socket_android.h"
 
@@ -111,9 +112,9 @@ void OS_Android::initialize_core() {
 	if (use_apk_expansion)
 		DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_RESOURCES);
 	else
-		DirAccess::make_default<DirAccessJAndroid>(DirAccess::ACCESS_RESOURCES);
-	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_USERDATA);
-	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_FILESYSTEM);
+		DirAccess::make_default<DirAccessResourcesJAndroid>(DirAccess::ACCESS_RESOURCES);
+	DirAccess::make_default<DirAccessJAndroid>(DirAccess::ACCESS_USERDATA);
+	DirAccess::make_default<DirAccessJAndroid>(DirAccess::ACCESS_FILESYSTEM);
 
 	NetSocketAndroid::make_default();
 }

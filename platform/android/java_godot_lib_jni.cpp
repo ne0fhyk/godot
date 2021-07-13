@@ -39,6 +39,7 @@
 #include "core/engine.h"
 #include "core/project_settings.h"
 #include "dir_access_jandroid.h"
+#include "dir_access_resources_jandroid.h"
 #include "file_access_android.h"
 #include "jni_utils.h"
 #include "main/input_default.h"
@@ -118,15 +119,15 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_setVirtualKeyboardHei
 	}
 }
 
-JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_initialize(JNIEnv *env, jclass clazz, jobject activity, jobject godot_instance, jobject p_asset_manager, jboolean p_use_apk_expansion) {
+JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_initialize(JNIEnv *env, jclass clazz, jobject p_activity, jobject p_godot_instance, jobject p_asset_manager, jobject p_godot_io, jobject p_net_utils, jobject p_storage_handler, jboolean p_use_apk_expansion) {
 	initialized = true;
 
 	JavaVM *jvm;
 	env->GetJavaVM(&jvm);
 
 	// create our wrapper classes
-	godot_java = new GodotJavaWrapper(env, activity, godot_instance);
-	godot_io_java = new GodotIOJavaWrapper(env, godot_java->get_member_object("io", "Lorg/godotengine/godot/GodotIO;", env));
+	godot_java = new GodotJavaWrapper(env, p_activity, p_godot_instance);
+	godot_io_java = new GodotIOJavaWrapper(env, p_godot_io);
 
 	init_thread_jandroid(jvm, env);
 
@@ -134,8 +135,9 @@ JNIEXPORT void JNICALL Java_org_godotengine_godot_GodotLib_initialize(JNIEnv *en
 
 	FileAccessAndroid::asset_manager = AAssetManager_fromJava(env, amgr);
 
-	DirAccessJAndroid::setup(godot_io_java->get_instance());
-	NetSocketAndroid::setup(godot_java->get_member_object("netUtils", "Lorg/godotengine/godot/utils/GodotNetUtils;", env));
+	DirAccessJAndroid::setup(p_storage_handler);
+	DirAccessResourcesJAndroid::setup(p_storage_handler);
+	NetSocketAndroid::setup(p_net_utils);
 
 	os_android = new OS_Android(godot_java, godot_io_java, p_use_apk_expansion);
 

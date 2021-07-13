@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  dir_access_jandroid.h                                                */
+/*  FileSystemStorageProvider.kt                                         */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,75 +28,84 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef DIR_ACCESS_JANDROID_H
-#define DIR_ACCESS_JANDROID_H
+package org.godotengine.godot.io
 
-#include "core/os/dir_access.h"
-#include "java_godot_lib_jni.h"
-#include <stdio.h>
+import android.content.Context
+import android.util.SparseArray
+import java.io.File
 
-static const String FILESYSTEM_PREFIX = "ANDROID";
+/**
+ * Common class to handle files and directories access with the internal and external filesystem.
+ */
+internal abstract class FileSystemStorageProvider(private val context: Context): StorageHandler.StorageProvider {
 
-class DirAccessJAndroid : public DirAccess {
+	companion object {
+		private val TAG = FileSystemStorageProvider::class.java.simpleName
+	}
 
-	static jobject storage_handler;
-	static jclass cls;
+	private data class DirData(val dirFile: File, val files: Array<File>, var current: Int = 0)
 
-	static jmethodID _dir_open;
-	static jmethodID _dir_next;
-	static jmethodID _dir_close;
-	static jmethodID _dir_is_dir;
-	static jmethodID _get_drive_count;
-	static jmethodID _get_drive;
-	static jmethodID _make_dir;
-	static jmethodID _get_space_left;
-	static jmethodID _get_filesystem_type;
-	static jmethodID _rename;
-	static jmethodID _remove;
+	private var lastDirId = StorageHandler.STARTING_DIR_ID
+	private val dirs = SparseArray<DirData>()
 
-	static DirAccess *create_fs();
+	abstract fun getBaseDir(): File?
 
-public:
-	virtual Error list_dir_begin(); ///< This starts dir listing
-	virtual String get_next();
-	virtual bool current_is_dir() const;
-	virtual bool current_is_hidden() const;
-	virtual void list_dir_end(); ///<
+	override fun hasDirId(dirId: Int) = dirs.indexOfKey(dirId) >= 0
 
-	virtual int get_drive_count();
-	virtual String get_drive(int p_drive);
+	override fun dirOpen(path: String): Int {
+		val baseDir = getBaseDir() ?: return StorageHandler.INVALID_DIR_ID
 
-	virtual Error change_dir(String p_dir) = 0; ///< can be relative or absolute, return false on success
-	virtual String get_current_dir() = 0; ///< return current dir location
+		var dirFile = File(path)
+		if (dirFile.isAbsolute) {
+			// The filepath should be within the filesystem scope. If it's not, we abort.
+			if (!dirFile.canonicalPath.startsWith(baseDir.canonicalPath)) {
+				return StorageHandler.INVALID_DIR_ID
+			}
+		} else {
+			dirFile = File(baseDir, path)
+		}
 
-	virtual bool file_exists(String p_file);
-	virtual bool dir_exists(String p_dir) = 0;
+		// Check this is a directory.
+		if (!dirFile.isDirectory) {
+			return StorageHandler.INVALID_DIR_ID
+		}
 
-	virtual Error make_dir(String p_dir);
+		// Get the files in the directory
+		val files = dirFile.listFiles()?: return StorageHandler.INVALID_DIR_ID
 
-	virtual Error rename(String p_from, String p_to);
-	virtual Error remove(String p_name);
+		// Create the data representing this directory
+		val dirData = DirData(dirFile, files)
 
-	virtual bool is_link(String p_file) { return false; }
-	virtual String read_link(String p_file) { return p_file; }
-	virtual Error create_link(String p_source, String p_target) { return FAILED; }
+		dirs.put(++lastDirId, dirData)
+		return lastDirId
+	}
 
-	virtual String get_filesystem_type() const;
+	override fun dirNext(dirId: Int): String {
+		val dirData = dirs[dirId]
+		if (dirData.current >= dirData.files.size) {
+			dirData.current++
+			return ""
+		}
 
-	virtual uint64_t get_space_left();
+		return dirData.files[dirData.current++].name
+	}
 
-	static void setup(jobject p_storage_handler);
+	override fun dirClose(dirId: Int) {
+		dirs.remove(dirId)
+	}
 
-	DirAccessJAndroid();
-	~DirAccessJAndroid();
+	override fun dirIsDir(dirId: Int): Boolean {
+		val dirData = dirs[dirId]
 
-protected:
-	int id;
+		var index = dirData.current
+		if (index > 0) {
+			index--
+		}
 
-	String current_dir;
+		if (index >= dirData.files.size) {
+			return false
+		}
 
-	int dir_open(String p_path);
-	void dir_close(int p_id);
-};
-
-#endif // DIR_ACCESS_JANDROID_H
+		return dirData.files[index].isDirectory
+	}
+}
